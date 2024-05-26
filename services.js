@@ -56,7 +56,7 @@ async function search_product(product) {
 
 app.get('/', (req, res) => {
     // Send the HTML file as the response
-    res.sendFile(path.join(__dirname, 'first.html'));
+    res.sendFile(path.join(__dirname, 'services.html'));
 });
 
 app.get('/second.html', (req, res) => {
