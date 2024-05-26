@@ -1,4 +1,4 @@
-import Image from "next/image";
+const Image = require("next/image");
 
 export default function Home() {
   return (
