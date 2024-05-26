@@ -18,7 +18,7 @@ async function add_to_database(us, pw, product) {
   try {
     await client.connect();
     const db = client.db('SheCommerceDB');
-    const collection = db.collection('services');
+    const collection = db.collection('products');
 
     // insert into DB
     await collection.insertOne({"username": us, "password": pw, "product_name": product});
@@ -35,7 +35,7 @@ async function add_to_database(us, pw, product) {
 
 app.get('/', (req, res) => {
     // Send the HTML file as the response
-    res.sendFile(path.join(__dirname, 'services.html'));
+    res.sendFile(path.join(__dirname, 'products.html'));
 });
 
 
