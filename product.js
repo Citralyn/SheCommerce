@@ -12,7 +12,7 @@ async function run() {
     const collection = db.collection('products');
 
     // Find the first document in the collection
-    const first = await collection.findOne({Product_Types : {$regex : "pillow"}});
+    const first = await collection.findOne({Product_Types : {$regex : "cookie"}});
 
     console.log(first);
   } finally {
