@@ -6,9 +6,11 @@ const port = 3000;
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json()); 
 
+
 app.set('views', __dirname);
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'ejs');
+
 
 const { MongoClient } = require('mongodb');
 
@@ -17,14 +19,14 @@ const uri = process.env.MONGO_KEY;
 
 const client = new MongoClient(uri);
 
-async function add_custom_products(fn, ln, product, desc, price) {
+async function add_custom_products(name, product, desc, price) {
   try {
     await client.connect();
     const db = client.db('SheCommerceDB');
     const collection = db.collection('products');
 
     // insert into DB
-    await collection.insertOne({"first_name": fn, "last_name": ln, Product_Types: product, "description": desc, "price": price});
+    await collection.insertOne({"Name": name, Product_Types: product, "description": desc, "price": price});
 
   } catch(err) {
     console.log(err); 
@@ -41,9 +43,23 @@ async function search_product(product) {
     const db = client.db('SheCommerceDB');
     const collection = db.collection('products');
 
-    // insert into DB
-    const items = await collection.findOne({Product_Types : {$regex : product}});
-    return(items); 
+    const single = await collection.findOne({Product_Types : {$regex : product}});
+    console.log(single);
+    //const cursor = collection.find({Product_Types : {$regex : product}});
+
+    // Print a message if no documents were found
+    if ((await collection.countDocuments({Product_Types : {$regex : product}})) === 0) {
+      console.log("No documents found!");
+    } else {
+      return single; 
+    }
+    // Print returned documents
+    /*
+    for await (const doc of cursor) {
+      console.dir(doc);
+    }*/
+
+    
 
   } catch(err) {
     console.log(err); 
@@ -56,7 +72,7 @@ async function search_product(product) {
 
 app.get('/', (req, res) => {
     // Send the HTML file as the response
-    res.sendFile(path.join(__dirname, 'services.html'));
+    res.sendFile(path.join(__dirname, 'first.html'));
 });
 
 app.get('/second.html', (req, res) => {
@@ -74,19 +90,35 @@ app.post('/share_product', function(req, res) {
     // Send a response back to the client
 
     //res.status(200).json({ data: data, message: 'Data received successfully' });
-    add_custom_products(req.body.first_name, req.body.last_name, req.body.product, req.body.description, req.body.price);
+    add_custom_products(req.body.name, req.body.product, req.body.description, req.body.price);
 })
 
 app.post('/find_product', function(req, res) {
-  const data = req.body;
+  const data = req.body.product;
+  const cat = search_product(req.body.product).then((result)=> {
+    //the promise is resolved here
+    console.log("HI")
+    res.render("new.html", {
+      test: result.Name
+    });
+    console.log(result)
+  }).catch(console.error.bind(console));
+
+  console.log("MEOW")
+  console.log(cat);
+
+
+
   // Send a response back to the client
 
   //res.status(200).json({ data: data, message: 'Data received successfully' });
+  /*
   var cat = search_product(req.body.product);
   console.log(cat);
   res.render("new.html", {
     test: cat.Name
   });
+  */
 })
 
 app.listen(port, () => {
