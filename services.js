@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const path = require('path');
-const port = 3000;
+const port = 3003;
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json()); 
@@ -19,14 +19,14 @@ const uri = process.env.MONGO_KEY;
 
 const client = new MongoClient(uri);
 
-async function add_custom_products(name, product, desc, price) {
+async function add_custom_products(name, product, desc, price, photo) {
   try {
     await client.connect();
     const db = client.db('SheCommerceDB');
     const collection = db.collection('products');
 
     // insert into DB
-    await collection.insertOne({"Name": name, Product_Types: product, "description": desc, "price": price});
+    await collection.insertOne({"Name": name, Product_Types: product, "Description": desc, "Price_Range": price, "Photos": photo});
 
   } catch(err) {
     console.log(err); 
@@ -75,6 +75,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'first.html'));
 });
 
+app.get('/first.html', (req, res) => {
+  // Send the HTML file as the response
+  res.sendFile(path.join(__dirname, 'first.html'));
+});
+
 app.get('/second.html', (req, res) => {
   // Send the HTML file as the response
   res.sendFile(path.join(__dirname, 'second.html'));
@@ -90,16 +95,32 @@ app.post('/share_product', function(req, res) {
     // Send a response back to the client
 
     //res.status(200).json({ data: data, message: 'Data received successfully' });
-    add_custom_products(req.body.name, req.body.product, req.body.description, req.body.price);
+    add_custom_products(req.body.name, req.body.product, req.body.description, req.body.price, req.body.photo);
+    res.sendFile(path.join(__dirname, 'first.html'));
 })
 
 app.post('/find_product', function(req, res) {
   const data = req.body.product;
   const cat = search_product(req.body.product).then((result)=> {
     //the promise is resolved here
-    console.log("HI")
+    var meow = String(result.Photos);
+    var image_id; 
+    if (meow.split(" ").length == 1) {
+      image_id = meow;
+    } else {
+      var love = String(result.Photos).split(",");
+      image_id = String(love[love.length - 1]).split(" ");
+      image_id = image_id[image_id.length - 1].slice(1, -1);
+    }
+    var price = String(result.Price_Range);
+    var descr = String(result.Description);
+
     res.render("new.html", {
-      test: result.Name
+      name: result.Name,
+      image: image_id,
+      price: price,
+      description: descr
+
     });
     console.log(result)
   }).catch(console.error.bind(console));
@@ -107,18 +128,6 @@ app.post('/find_product', function(req, res) {
   console.log("MEOW")
   console.log(cat);
 
-
-
-  // Send a response back to the client
-
-  //res.status(200).json({ data: data, message: 'Data received successfully' });
-  /*
-  var cat = search_product(req.body.product);
-  console.log(cat);
-  res.render("new.html", {
-    test: cat.Name
-  });
-  */
 })
 
 app.listen(port, () => {
